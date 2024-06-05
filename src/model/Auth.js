@@ -8,13 +8,14 @@ const validateEmail = function (email) {
 
 
 const UserSchema = Schema({
-    firstName:{
-        type: String,
-        required: true
-    },
-    lastName: {
+    // name:{
+    //     type: String,
+    //     required: true
+    // },
+    userName: {
         type: String,
         required: true,
+        unique: true
       },
     email: {
         type: String,
@@ -28,26 +29,16 @@ const UserSchema = Schema({
         type: Boolean,
         default : false
     },
-    phone:{
-        type: String,
-        required: true,
-        unique: true
-    },
+    // phone:{
+    //     type: String,
+    //     required: true,
+    //     unique: true
+    // },
     password: {
         type: String,
         required: true,
       },
-      gender: {
-        type: String,
-        required: true,
-        validate: {
-          validator: function (value) {
-            return ["male", "female"].includes(value.toLowerCase());
-          },
-          message: (props) =>
-            `${props.value} is not a valid gender. Gender must be either 'male' or 'female'.`,
-        },
-      },
+     
       image: {
         type: String,
         required: true,
@@ -56,14 +47,14 @@ const UserSchema = Schema({
         type: Date,
         default: Date.now,
       },
-      // projects: [
-      //   {
-      //     project: {
-      //       type: mongoose.Schema.Types.ObjectId,
-      //       ref: "Projects",
-      //     },
-      //   },
-      // ],
+      projects: [
+        {
+          project: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Projects",
+          },
+        },
+      ],
 })
 
 module.exports = mongoose.model('User', UserSchema)

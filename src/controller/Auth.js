@@ -16,17 +16,14 @@ const { sendVerificationCode, sendWelcomeEmail } = require("../mailer");
 // const jwt = require("jsonwebtoken");
 
 async function handleSignUp(req, res) {
-  let { firstName, lastName, email, gender, phone, password, createdAt, image} = req.body;
+  let { userName, email, password, createdAt,} = req.body;
   try {
     const result = await cloudinary.uploader.upload(req.file.path,{
       folder: 'PMS image',
   })
     let validatedData = UserZodSchema.parse({
-      firstName,
-      lastName,
+      userName,
       email,
-      gender,
-      phone,
       password,
       createdAt,
       image: result.secure_url
@@ -37,7 +34,7 @@ async function handleSignUp(req, res) {
     // make my validation validation
 
     const response = await User.create(validatedData);
-    const name = firstName + " " + lastName;
+    const name = userName;
     // await sendWelcomeEmail({ name, email });
     res.status(200).json(validatedData);
     console.log(validatedData);
@@ -69,13 +66,14 @@ const handleSendOtpVerification = async ({ res, email }) => {
     // res.json(response);
     console.log(response);
   } catch (error) {
-    res.staus(400).json({ message: "Error", error });
+    // res.status(400).json({ message: "Error", error });
     console.log(error);
   }
 };
 
 const handleOtpverify = async (req, res) => {
   const { email, otps } = req.body;
+  // console.log(req.body)
   try {
     if (!email || !otps) {
       return res.status(404).json({ message: "please fill all details" });
@@ -147,7 +145,7 @@ async function handleLogIn(req, res) {
     const token = createToken(userDetails._id, userDetails.email);
 
     res.json({ message: "u are logged in", token });
-    console.log(req.body);
+    // console.log(req.body);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "error creating data", error });

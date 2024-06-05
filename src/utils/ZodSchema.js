@@ -1,11 +1,14 @@
 const { z } = require("zod")
 
 const UserZodSchema = z.object({
-    firstName: z.string().min(1, {
-        message: "First name is required",
-      }),
-      lastName: z.string().min(1, {
-        message: "Last name is required",
+    // name: z.string().min(1, {
+    //     message: "Name is required",
+    //   }),
+      // lastName: z.string().min(1, {
+      //   message: "Last name is required",
+      // }),
+      userName: z.string().min(1, {
+        message: "User Name is required",
       }),
       email: z
         .string()
@@ -15,17 +18,17 @@ const UserZodSchema = z.object({
         })
         .transform((str) => str.toLowerCase()),
     
-      phone: z.string().min(11, {
-        message: "Phone number is required",
-      }),
-      password: z.string().min(8, {
+      // phone: z.string().min(11, {
+      //   message: "Phone number is required",
+      // }),
+      password: z.string().min(6, {
         message: "Password is required",
-      }),
-      gender: z.enum(["male", "female"], {
-        errorMap: (issue, ctx) => ({
-          message: `${ctx.data} is not a valid gender. Gender must be either 'male' or 'female'.`,
-        }),
-      }),
+      }).max(20),
+      // gender: z.enum(["male", "female"], {
+      //   errorMap: (issue, ctx) => ({
+      //     message: `${ctx.data} is not a valid gender. Gender must be either 'male' or 'female'.`,
+      //   }),
+      // }),
       // createdAt: z.optional(),
       
       image: z.string().min(1, {

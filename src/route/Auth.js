@@ -10,7 +10,7 @@ const multerUploads = require('../utils/MulterUpload');
 route.post('/signUpuser', multerUploads.single('image'), handleSignUp);
 route.post("/verifyotp", handleOtpverify);
 route.post("/loginuser", handleLogIn);
-route.post("/checkauth", verifyToken, handleCheckAuth);
+route.get("/checkAuth", verifyToken, handleCheckAuth);
 route.post('/forgetPassword', handleForgetPassword)
 route.post("/forgetPassOtp", handleforgetPassOtp);
 route.patch("/changePassword", handleChangePassword);

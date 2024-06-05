@@ -1,13 +1,13 @@
 const express = require('express');
-const { handleCreateProject } = require('../controller/Project');
+const { handleCreateProject, handleGetProject } = require('../controller/Project');
+const authenticate = require('../middleWare/Auth');
 const route = express.Router()
 
 
 
 
-
-route.post("/createProject", handleCreateProject);
-// route.get("/getProject", handleGetProject);
+route.post("/createProject", authenticate, handleCreateProject);
+route.get("/getUserProject", authenticate,  handleGetProject);
 // route.post();
 // route.post();
 
