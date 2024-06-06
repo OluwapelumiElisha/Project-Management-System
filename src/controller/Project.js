@@ -1,5 +1,5 @@
 // const { default: mongoose } = require("mongoose");
-const Projects = require("../model/Project");
+// const Projects = require("../model/Project");
 const Project = require("../model/Project");
 
 const mongoose = require('mongoose')
@@ -42,12 +42,29 @@ const handleGetProject = async (req, res) =>{
         if (!mongoose.Types.ObjectId.isValid(user)) {
             return res.status(400).json({message: "invaild"})
         }
-        const response = await Projects.find({ user })
+        const getUserProjects = await Project.find({ user })
         // const response = await Projects.findById(user.id)
-         console.log(response);
+        //  console.log(response);
+         res.status(200).json({
+            status: "success",
+            message: "Get all User Project",
+            getUserProjects,
+        });
        } catch (error) {
         console.log(error);
        }
 }
+  const deleteUserProject = async(req, res) =>{
+    try {
+        const id = req.params.id
+        const response = await Project.findByIdAndDelete(id)
+        res.status(200).json({message: "Project Deleted Successfully", response}).status(202)
+      
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: "Is an error", error}).status(505)
+    }
+}
+  
 
-module.exports = { handleCreateProject, handleGetProject };
+module.exports = { handleCreateProject, handleGetProject, deleteUserProject };

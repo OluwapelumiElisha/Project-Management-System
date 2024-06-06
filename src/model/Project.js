@@ -65,11 +65,13 @@ const projectSchema = Schema({
     type: Date,
     default: Date.now,
   },
-
+  
   endDate: {
     type: Date,
   },
-
+  weekOfMonth:{
+    type: Number
+  },
   // tasks: [
   //   {
   //     type: mongoose.Schema.Types.ObjectId,
@@ -77,6 +79,13 @@ const projectSchema = Schema({
   //   },
   // ],
 });
+projectSchema.pre('save', function(next){
+  const startDate = new Date(this.startDate.getFullYear(), this.startDate.getMonth(), 1);
+  const dayOfMonth = this.startDate.getDate();
+  const weekNumber = Math.ceil((dayOfMonth + startDate.getDay()) /7);
+  this.weekOfMonth = weekNumber;
+  next()
+})
 
 const Projects = mongoose.model("Projects", projectSchema);
 
