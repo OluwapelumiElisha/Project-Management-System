@@ -13,7 +13,7 @@ const verifyToken = (req, res , next) =>{
         return res.status(401).json({ message: "unauthorized" });
     }
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) return res.status(404).json("your token expire pls login");
+        if (err) return res.status(404).json("Your token expire pls login");
         console.log(decoded);
         req.user = decoded.id;
         next();

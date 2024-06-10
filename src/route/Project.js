@@ -8,7 +8,7 @@ const route = express.Router()
 
 route.post("/createProject", authenticate, handleCreateProject);
 route.get("/getUserProject", authenticate,  handleGetProject);
-route.delete('/deleteUserProject/:id', deleteUserProject)
+route.delete('/deleteUserProject/:id',  deleteUserProject)
 // route.post();
 // route.post();
 
