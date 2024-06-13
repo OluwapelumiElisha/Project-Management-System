@@ -16,16 +16,18 @@ const { sendVerificationCode, sendWelcomeEmail } = require("../mailer");
 // const jwt = require("jsonwebtoken");
 
 async function handleSignUp(req, res) {
-  let { userName, email, password, createdAt,} = req.body;
+  let { userName, email, password, createdAt, title, lastActive} = req.body;
   try {
     const result = await cloudinary.uploader.upload(req.file.path,{
       folder: 'PMS image',
   })
     let validatedData = UserZodSchema.parse({
       userName,
+      title,
       email,
       password,
       createdAt,
+      lastActive,
       image: result.secure_url
     });
     const salt = await bcrypt.genSalt();
@@ -73,7 +75,6 @@ const handleSendOtpVerification = async ({ res, email }) => {
 
 const handleOtpverify = async (req, res) => {
   const { email, otps } = req.body;
-  // console.log(req.body)
   try {
     if (!email || !otps) {
       return res.status(404).json({ message: "please fill all details" });
@@ -239,6 +240,42 @@ const handleForgetPassword = async (req, res) =>{
 
 
  }
+
+
+ const handleGetAllUser = async (req, res) =>{
+  const user = req.user; 
+   try {
+    // middleware will get d user id 
+        const loggedInUserId = user.id;
+
+        // Fetch all users except the currently logged-in user
+        const otherUsers = await User.find({ _id: { $ne: loggedInUserId } });
+
+        // Send the other users as a response
+        res.json(otherUsers);
+    } catch (err) {
+        console.error('Error fetching users:', err);
+        res.status(500).json({ error: 'An error occurred while fetching users' });
+    }
+ }
+
+const checkUserActivity = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Consider a user active if they have been active in the last 5 minutes
+        const isActive = new Date() - new Date(user.lastActive) < 5 * 60 * 1000;
+
+        res.json({ isActive });
+    } catch (err) {
+        console.error('Error checking user activity:', err);
+        res.status(500).json({ error: 'An error occurred while checking user activity' });
+    }
+};
+
 module.exports = {
   handleSignUp,
   handleOtpverify,
@@ -246,5 +283,7 @@ module.exports = {
   handleLogIn,
   handleForgetPassword,
   handleforgetPassOtp, 
-  handleChangePassword
+  handleChangePassword,
+  handleGetAllUser,
+  checkUserActivity
 };

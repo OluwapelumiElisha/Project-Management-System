@@ -4,9 +4,9 @@ const UserZodSchema = z.object({
     // name: z.string().min(1, {
     //     message: "Name is required",
     //   }),
-      // lastName: z.string().min(1, {
-      //   message: "Last name is required",
-      // }),
+      title: z.string().min(1, {
+        message: "Title is required",
+      }),
       userName: z.string().min(1, {
         message: "User Name is required",
       }),
@@ -34,6 +34,7 @@ const UserZodSchema = z.object({
       image: z.string().min(1, {
         message: "Please Input Your Image",
       }),
+      // lastActive: z.date()
 })
 
 module.exports = UserZodSchema

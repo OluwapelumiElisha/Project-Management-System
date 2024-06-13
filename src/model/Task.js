@@ -5,6 +5,7 @@ const taskSchema = Schema({
     type: String,
     required: [true, "A task should have a name"],
     index: true,
+    unquie : true
   },
 
   description: {

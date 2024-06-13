@@ -29,14 +29,18 @@ const UserSchema = Schema({
         type: Boolean,
         default : false
     },
-    // phone:{
-    //     type: String,
-    //     required: true,
-    //     unique: true
-    // },
+    title:{
+        type: String,
+        required: true,
+        unique: true
+    },
     password: {
         type: String,
         required: true,
+      },
+      lastActive: { 
+        type: Date, 
+        default: Date.now 
       },
      
       image: {
