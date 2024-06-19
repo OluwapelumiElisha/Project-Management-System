@@ -1,5 +1,4 @@
-// const { default: mongoose } = require("mongoose");
-// const Projects = require("../model/Project");
+
 const Project = require("../model/Project");
 const User = require('../model/Auth')
 const mongoose = require('mongoose')
@@ -59,38 +58,13 @@ const handleGetProject = async (req, res) =>{
     const id = req.params.id
     
     try {
-        
-        // const id = req.params.id
-        // const ddd = await User.find()
-        // const fff = ddd[0].projects.project
-        // console.log(fff, 'hello')
         const response = await Project.findByIdAndDelete(id)
         res.status(200).json({message: "Project Deleted Successfully", response}).status(202)
-        // res.json({message : "hello"})
     } catch (error) {
         console.log(error);
         res.status(500).json({message: "Is an error", error}).status(505)
     }
-    // try {
-    //     // Step 1: Delete the project document
-    //     const deletedProject = await Project.findByIdAndDelete(id);
-        
-    //     if (!deletedProject) {
-    //         throw new Error('Project not found');
-    //     }
-    //     res.status(200).json({message: "Project Deleted Successfully", deletedProject}).status(202)
-    //     // console.log(id, 'pro id');
-    //     // console.log(user.id, "user id");
-    //     // Step 2: Remove the project ID from the user's projects array
-    //     // await User.updateOne(
-    //     //     { _id: user.id },
-    //     //     { $pull: { projects: { project: id } } }
-    //     // );
-
-    //     console.log('Project deleted and ID removed from user\'s projects array');
-    // } catch (error) {
-    //     console.error('Error deleting project:', error.message);
-    // }
+   
 }
   
 

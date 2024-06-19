@@ -27,21 +27,10 @@ const taskSchema = Schema({
     required: true,
     ref: "Projects",
   },
-
-//   collaborators: [
-//     {
-//       user: {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "Users",
-//       },
-//       role: {
-//         type: String,
-//         enum: ["viewer", "editor"],
-//         default: "viewer",
-//       },
-//     },
-//   ],
-
+  assignedTo:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Users',
+  }],
   startDate: {
     type: Date,
     default: Date.now,
