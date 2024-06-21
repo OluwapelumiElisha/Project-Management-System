@@ -1,11 +1,11 @@
 const Projects = require("../model/Project");
 const Tasks = require("../model/Task");
-
+const User = require("../model/Auth")
 const handleCreateTask = async (req, res) => {
   const user = req.user;
 
   try {
-    const { name, description, project } = req.body;
+    const { name, description, project, assignedBy } = req.body;
 
     // Check if name and description are provided
     if (!name || !description) {
@@ -19,7 +19,7 @@ const handleCreateTask = async (req, res) => {
     }
 
     // Create the new task
-    const task = await Tasks.create({ name, description, project, user: user._id });
+    const task = await Tasks.create({ name, description, project, user: user._id, assignedBy: user._id });
     if (!task) {
       return res.status(500).json({ message: "Failed to create new task" });
     }
@@ -63,7 +63,6 @@ const getTasksByProject = async (req, res) => {
 
 
 const deleteTask = async(req, res) =>{
-  // const user = req.user
   const id = req.params.id
   
   try {
@@ -111,6 +110,36 @@ const updateTask = async(req, res) =>{
 //     res.status(500).json({ message: "Server error" });
 //   }
 // }
+// const getTasksAssignedToUser = async (req, res) => {
+//   const user = req.user;
+
+//   try {
+//     // Find tasks assigned to the user
+//     const tasks = await Tasks.find({ assignedTo: user.id });
+
+//     if (!tasks.length) {
+//       return res.status(404).json({ message: "No tasks found for this user" });
+//     }
+
+//     // Get the project details for each task
+//     const tasksWithProject = await Promise.all(tasks.map(async (task) => {
+//       const project = await Projects.findById(task.project).select('name description');
+//       return {
+//         ...task._doc,
+//         project: project || null
+//       };
+//     }));
+
+//     res.status(200).json({
+//       status: "success",
+//       tasks: tasksWithProject,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
 const getTasksAssignedToUser = async (req, res) => {
   const user = req.user;
 
@@ -122,24 +151,39 @@ const getTasksAssignedToUser = async (req, res) => {
       return res.status(404).json({ message: "No tasks found for this user" });
     }
 
-    // Get the project details for each task
-    const tasksWithProject = await Promise.all(tasks.map(async (task) => {
-      const project = await Projects.findById(task.project).select('name description');
+    // Get the project details and assigner details for each task
+    const tasksWithDetails = await Promise.all(tasks.map(async (task) => {
+      // Log task details for debugging
+      console.log('Task:', task);
+
+      const project = task.project ? await Projects.findById(task.project).select('name description') : null;
+      if (!project) {
+        console.warn(`Project not found for task: ${task._id}`);
+      }
+
+      const assignedBy = task.assignedBy ? await User.findById(task.assignedBy).select('image') : null;
+      if (!assignedBy) {
+        console.warn(`AssignedBy user not found for task: ${task._id}`);
+      }
+
       return {
         ...task._doc,
-        project: project || null
+        project: project || null,
+        assignedBy: assignedBy || null
       };
     }));
 
     res.status(200).json({
       status: "success",
-      tasks: tasksWithProject,
+      tasks: tasksWithDetails,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 
 // const getProjectTask = async() =>{
