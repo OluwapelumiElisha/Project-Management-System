@@ -75,21 +75,31 @@ const deleteTask = async(req, res) =>{
  
 }
 
-const updateTask = async(req, res) =>{
+const updateTaskAssigned = async(req, res) =>{
   const { userId } = req.body;
-  // const user = req.user;
+  const taskId = req.params.taskId;
   try {
-    const task = await Tasks.findByIdAndUpdate(
-      req.params.taskId,
-      { $push: { assignedTo: userId } },
-      { new: true }
-    )
+    const task = await Tasks.findById(taskId);
+
     if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
+      return res.status(404).json({ error: 'Task not found.' });
     }
-    res.status(200).json(task);
+
+    // Check if the user is already assigned
+    const alreadyAssigned = task.assignedTo.some(item => item.userId.equals(userId));
+
+    if (alreadyAssigned) {
+      return res.status(400).json({ error: 'User is already assigned to this task.' });
+    }
+
+    // Assign the user to the task
+    task.assignedTo.push({ userId, completed: false });
+
+    await task.save();
+    res.json({ message: `User ${userId} assigned to task ${taskId}` });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error assigning task to user:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
 // const getTasksAssignedToUser = async(req, res) =>{
@@ -142,10 +152,10 @@ const updateTask = async(req, res) =>{
 
 const getTasksAssignedToUser = async (req, res) => {
   const user = req.user;
-
+  // userId = user._id
   try {
     // Find tasks assigned to the user
-    const tasks = await Tasks.find({ assignedTo: user.id });
+    const tasks = await Tasks.find({ 'assignedTo.userId': user._id });
 
     if (!tasks.length) {
       return res.status(404).json({ message: "No tasks found for this user" });
@@ -153,24 +163,31 @@ const getTasksAssignedToUser = async (req, res) => {
 
     // Get the project details and assigner details for each task
     const tasksWithDetails = await Promise.all(tasks.map(async (task) => {
-      // Log task details for debugging
-      console.log('Task:', task);
+      try {
+        // Extract the specific assignment for the user
+        const userAssignment = task.assignedTo.find(assignment => assignment.user._id.equals(user._id));
+        
+        // Fetch project details if project exists
+        const project = task.project ? await Projects.findById(task.project).select('name description') : null;
 
-      const project = task.project ? await Projects.findById(task.project).select('name description') : null;
-      if (!project) {
-        console.warn(`Project not found for task: ${task._id}`);
+        // Fetch assignedBy user details if assignedBy exists
+        const assignedBy = task.assignedBy ? await User.findById(task.assignedBy).select('image') : null;
+
+        return {
+          ...task._doc,
+          project: project || null,
+          assignedBy: assignedBy || null,
+          userAssignment: userAssignment || null, // Include the specific assignment details for the user
+        };
+      } catch (err) {
+        console.error(`Error fetching details for task ${task._id}:`, err);
+        return {
+          ...task._doc,
+          project: null,
+          assignedBy: null,
+          userAssignment: null,
+        };
       }
-
-      const assignedBy = task.assignedBy ? await User.findById(task.assignedBy).select('image') : null;
-      if (!assignedBy) {
-        console.warn(`AssignedBy user not found for task: ${task._id}`);
-      }
-
-      return {
-        ...task._doc,
-        project: project || null,
-        assignedBy: assignedBy || null
-      };
     }));
 
     res.status(200).json({
@@ -178,15 +195,42 @@ const getTasksAssignedToUser = async (req, res) => {
       tasks: tasksWithDetails,
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching tasks:', error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+  const handlecomplete = async(req, res) =>{
+    const user = req.user;
+    Id = user._id
+    const taskId = req.params.id;
+    console.log(taskId)
+    try {
+      const task = await Tasks.findOne({ _id: taskId, 'completedBy.userId': Id });
+      console.log(task)
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found or user is not assigned to it.' });
+      }
+  
+      const userIndex = task.completedBy.findIndex(item => item.userId.equals(Id));
+      task.completedBy[userIndex].completed = true;
+  
+      await task.save();
+      res.json({ message: `Task ${taskId} marked as completed by user ${Id}` });
+    } catch (err) {
+      console.error('Error marking task as completed:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
 
 
-
-// const getProjectTask = async() =>{
-
-// }
-module.exports = { handleCreateTask , getTasksByProject, deleteTask, updateTask, getTasksAssignedToUser};
+  // const handleDone = async(req, res) =>{
+  //   try {
+  //   let response = await Tasks.find({ completed: true })
+  //   console.log(response);
+  //   return res.status(200).json({ message: response});
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }
+module.exports = { handleCreateTask , getTasksByProject, deleteTask, updateTaskAssigned , getTasksAssignedToUser, handlecomplete};

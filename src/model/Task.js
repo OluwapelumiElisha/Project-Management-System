@@ -31,10 +31,6 @@ const taskSchema = Schema({
     required: true,
     ref: "Projects",
   },
-  assignedTo:[{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Users',
-  }],
   startDate: {
     type: Date,
     default: Date.now,
@@ -45,10 +41,10 @@ const taskSchema = Schema({
     type: Date,
   },
 
-  completed: {
-    type: Boolean,
-    default: false,
-  },
+  assignedTo: [{
+    userId: { type: Schema.Types.ObjectId, ref: 'Users' },
+    completed: { type: Boolean, default: false }
+  }]
 
 })
 
