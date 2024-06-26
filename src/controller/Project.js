@@ -66,6 +66,46 @@ const handleGetProject = async (req, res) =>{
     }
    
 }
+const getProjectsWithTasksAndAssignedUsers = async (req, res) => {
+    const user = req.user
+    try {
+      const projects = await Project.find({ user })
+        .populate({
+          path: 'tasks',
+          populate: {
+            path: 'assignedTo.userId',
+            model: 'User'
+          }
+        })
+        .exec();
+  
+      if (!projects || projects.length === 0) {
+        return res.status(404).json({ message: "No projects found" });
+      }
+  
+      // Prepare response data in the format you need
+      const projectsWithTasksAndUsers = projects.map(project => ({
+        id: project._id,
+        name: project.name,
+        description: project.description,
+        tasks: project.tasks.map(task => ({
+          id: task._id,
+          name: task.name,
+          description: task.description,
+          assignedTo: task.assignedTo.map(assignee => ({
+            userId: assignee.userId._id,
+            userName: assignee.userId.name, // Assuming User model has a 'name' field
+            completed: assignee.completed
+          }))
+        }))
+      }));
+  
+      res.status(200).json(projectsWithTasksAndUsers);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
   
 
-module.exports = { handleCreateProject, handleGetProject, deleteUserProject };
+module.exports = { handleCreateProject, handleGetProject, deleteUserProject, getProjectsWithTasksAndAssignedUsers };

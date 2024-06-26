@@ -59,9 +59,6 @@ const getTasksByProject = async (req, res) => {
       res.status(500).json({ message: "Server error" });
   }
 };
-
-
-
 const deleteTask = async(req, res) =>{
   const id = req.params.id
   
@@ -74,7 +71,6 @@ const deleteTask = async(req, res) =>{
   }
  
 }
-
 const updateTaskAssigned = async(req, res) =>{
   const { userId } = req.body;
   const taskId = req.params.taskId;
@@ -102,60 +98,11 @@ const updateTaskAssigned = async(req, res) =>{
     res.status(500).json({ error: 'Internal server error' });
   }
 }
-// const getTasksAssignedToUser = async(req, res) =>{
-//   const user = req.user;
-//   try {
-//     const tasks = await Tasks.find({ assignedTo: user.id});
-
-//     if (!tasks.length) {
-//       return res.status(404).json({ message: "No tasks found for this user" });
-//     }
-
-//     res.status(200).json({
-//       status: "success",
-//       tasks,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// }
-// const getTasksAssignedToUser = async (req, res) => {
-//   const user = req.user;
-
-//   try {
-//     // Find tasks assigned to the user
-//     const tasks = await Tasks.find({ assignedTo: user.id });
-
-//     if (!tasks.length) {
-//       return res.status(404).json({ message: "No tasks found for this user" });
-//     }
-
-//     // Get the project details for each task
-//     const tasksWithProject = await Promise.all(tasks.map(async (task) => {
-//       const project = await Projects.findById(task.project).select('name description');
-//       return {
-//         ...task._doc,
-//         project: project || null
-//       };
-//     }));
-
-//     res.status(200).json({
-//       status: "success",
-//       tasks: tasksWithProject,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
 const getTasksAssignedToUser = async (req, res) => {
-  const user = req.user;
-  // userId = user._id
+  const userId = req.user._id;
   try {
     // Find tasks assigned to the user
-    const tasks = await Tasks.find({ 'assignedTo.userId': user._id });
+    const tasks = await Tasks.find({ 'assignedTo.userId': userId });
 
     if (!tasks.length) {
       return res.status(404).json({ message: "No tasks found for this user" });
@@ -165,7 +112,7 @@ const getTasksAssignedToUser = async (req, res) => {
     const tasksWithDetails = await Promise.all(tasks.map(async (task) => {
       try {
         // Extract the specific assignment for the user
-        const userAssignment = task.assignedTo.find(assignment => assignment.user._id.equals(user._id));
+        const userAssignment = task.assignedTo.find(assignment => assignment.userId.equals(userId));
         
         // Fetch project details if project exists
         const project = task.project ? await Projects.findById(task.project).select('name description') : null;
@@ -200,37 +147,107 @@ const getTasksAssignedToUser = async (req, res) => {
   }
 };
 
-  const handlecomplete = async(req, res) =>{
-    const user = req.user;
-    Id = user._id
-    const taskId = req.params.id;
-    console.log(taskId)
-    try {
-      const task = await Tasks.findOne({ _id: taskId, 'completedBy.userId': Id });
-      console.log(task)
-      if (!task) {
-        return res.status(404).json({ error: 'Task not found or user is not assigned to it.' });
-      }
-  
-      const userIndex = task.completedBy.findIndex(item => item.userId.equals(Id));
-      task.completedBy[userIndex].completed = true;
-  
-      await task.save();
-      res.json({ message: `Task ${taskId} marked as completed by user ${Id}` });
-    } catch (err) {
-      console.error('Error marking task as completed:', err);
-      res.status(500).json({ error: 'Internal server error' });
+const handleComplete = async (req, res) => {
+  const userId = req.user._id;
+  const taskId = req.params.id;
+
+  try {
+    // Find the task where the user is assigned to it
+    const task = await Tasks.findOne({ _id: taskId, 'assignedTo.userId': userId });
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found or user is not assigned to it.' });
     }
+
+    // Find the index of the user's assignment within the assignedTo array
+    const userIndex = task.assignedTo.findIndex(item => item.userId.equals(userId));
+    
+    // Toggle the completed status
+    task.assignedTo[userIndex].completed = !task.assignedTo[userIndex].completed;
+
+    await task.save();
+    res.json({ message: `Task ${taskId} completion status toggled by user ${userId}`, completed: task.assignedTo[userIndex].completed });
+  } catch (err) {
+    console.error('Error toggling task completion status:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const handleTaskSummary = async (req, res) =>{
+  const userId = req.user._id;
+  console.log(userId)
+  try {
+    const result = await Projects.aggregate([
+      {
+        $match: { user: userId }
+      },
+      {
+        $lookup: {
+          from: "tasks",
+          localField: "tasks",
+          foreignField: "_id",
+          as: "taskDetails",
+        },
+      },
+      {
+        $unwind: "$taskDetails",
+      },
+      {
+        $unwind: "$taskDetails.assignedTo",
+      },
+      {
+        $group: {
+          _id: {
+            projectId: "$_id",
+            userId: "$taskDetails.assignedTo.userId",
+          },
+          projectName: { $first: "$name" },
+          userId: { $first: "$taskDetails.assignedTo.userId" },
+          assignedTasks: { $sum: 1 },
+          completedTasks: {
+            $sum: {
+              $cond: ["$taskDetails.assignedTo.completed", 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: "$userDetails",
+      },
+      {
+        $project: {
+          _id: 0,
+          projectId: "$_id.projectId",
+          projectName: 1,
+          userId: 1,
+          userName: "$userDetails.name",
+          assignedTasks: 1,
+          completedTasks: 1,
+        },
+      },
+      {
+        $sort: {
+          projectId: 1,
+          userId: 1,
+        },
+      },
+    ]);
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 
+}
 
-  // const handleDone = async(req, res) =>{
-  //   try {
-  //   let response = await Tasks.find({ completed: true })
-  //   console.log(response);
-  //   return res.status(200).json({ message: response});
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
-module.exports = { handleCreateTask , getTasksByProject, deleteTask, updateTaskAssigned , getTasksAssignedToUser, handlecomplete};
+
+
+module.exports = { handleCreateTask , getTasksByProject, deleteTask, updateTaskAssigned , getTasksAssignedToUser, handleComplete, handleTaskSummary};
