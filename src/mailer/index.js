@@ -33,7 +33,7 @@ const sendWelcomeEmail = ({ email }) => {
         box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     .email-header {
-        background-color: #007bff;
+        background-color: #dc2626;
         color: #ffffff;
         padding: 10px;
         text-align: center;
@@ -53,17 +53,17 @@ const sendWelcomeEmail = ({ email }) => {
 <body>
 <div class="email-wrapper">
     <div class="email-header">
-        <h1>Welcome to Our Website!</h1>
+        <h1>Welcome to Project Management System! </h1>
     </div>
     <div class="email-body">
         <p>Hello <strong>${email}</strong>,</p>
         <p>Thank you for joining us! We are excited to have you on board and look forward to serving you.</p>
-        <p>Please let us know if you have any questions or need further information.</p>
-        <p>your Account is succefully Verify</p>
+        <p>A project management system (PMS) is a set of tools, processes, and methodologies designed to plan, execute, and monitor projects efficiently and effectively. It provides a structured framework to manage various aspects of a project, including tasks, resources.</p>
+        <p>Your Account is succefully Verify</p>
     </div>
     <div class="email-footer">
         Best regards,<br>
-        The Team at SQI ICT COLLEGE
+        https://github.com/OluwapelumiElisha
     </div>
 </div>
 </body>
@@ -110,7 +110,7 @@ const sendVerificationCode = ({ email, otp }) => {
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
   }
   .email-header {
-      background-color: #007bff;
+      background-color: #dc2626;
       color: #ffffff;
       padding: 10px;
       text-align: center;
@@ -139,7 +139,7 @@ const sendVerificationCode = ({ email, otp }) => {
   </div>
   <div class="email-footer">
       Best regards,<br>
-      The Team at SQI ICT COLLEGE
+      https://github.com/OluwapelumiElisha
   </div>
   </div>
   </body>
