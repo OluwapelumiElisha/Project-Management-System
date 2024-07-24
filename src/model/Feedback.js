@@ -3,19 +3,16 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const feedbackSchema = Schema({
-  email: {
+  textfield: {
     type: String,
-    required: "email is require",
-    trim: true,
-    unique: true,
+    required: true,
+   
   },
-  otps: {
+  feedback: {
     type: String,
     required: true,
   },
-  createdAt: {
-    type: Date,
-  },
+ 
  
 });
 
