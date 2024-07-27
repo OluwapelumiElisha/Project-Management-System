@@ -8,7 +8,7 @@ app.use(morgan('dev'))
 app.use(express.json())
 //  it allow u to get data from backend
 app.use(cors())
-app.get('/', (req, res)=>(res.send('Welcome to PMS')))
+// app.get('/', (req, res)=>(res.send('Welcome to PMS')))
 
 
 const userRoute = require('./src/route/Auth')
