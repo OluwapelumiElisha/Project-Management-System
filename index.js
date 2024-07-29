@@ -32,10 +32,11 @@ const mongoApiconnect = process.env.mongoURL
 
 const start = async ()=>{
     try {
+        const port = process.env.Port || 4000
         const conn = await mongoose.connect(mongoApiconnect)
         console.log('Connected to DB');
         if (conn) {
-        app.listen(process.env.Port, 'localhost', ()=>{
+        app.listen(port, ()=>{
         console.log('Hello World am running on this port');
     })
         }
